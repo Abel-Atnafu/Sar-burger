@@ -39,13 +39,13 @@ const DEFAULT_MENU = {
 };
 
 const DEFAULT_HOURS = [
-  { day: 'Monday', open: '10:00', close: '23:00', isOpen: true },
-  { day: 'Tuesday', open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Monday',    open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Tuesday',   open: '10:00', close: '23:00', isOpen: true },
   { day: 'Wednesday', open: '10:00', close: '23:00', isOpen: true },
-  { day: 'Thursday', open: '10:00', close: '23:00', isOpen: true },
-  { day: 'Friday', open: '10:00', close: '23:00', isOpen: true },
-  { day: 'Saturday', open: '10:00', close: '23:00', isOpen: true },
-  { day: 'Sunday', open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Thursday',  open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Friday',    open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Saturday',  open: '10:00', close: '23:00', isOpen: true },
+  { day: 'Sunday',    open: '10:00', close: '23:00', isOpen: true },
 ];
 
 const DEFAULT_PROMOS = [
@@ -55,23 +55,17 @@ const DEFAULT_PROMOS = [
 const ADMIN_PASSWORD = 'sarAdmin2025';
 
 /* ===== STATE ===== */
-let menuData = loadData('sarMenuData', DEFAULT_MENU);
-let hoursData = loadData('sarHoursData', DEFAULT_HOURS);
-let promosData = loadData('sarPromosData', DEFAULT_PROMOS);
-let ordersData = loadData('sarOrdersData', []);
+let menuData  = JSON.parse(JSON.stringify(DEFAULT_MENU));
+let hoursData = JSON.parse(JSON.stringify(DEFAULT_HOURS));
+let promosData = JSON.parse(JSON.stringify(DEFAULT_PROMOS));
 let pendingDelete = null;
+let ordersUnsubscribe = null;
 
-/* ===== STORAGE HELPERS ===== */
-function loadData(key, fallback) {
-  try {
-    const d = localStorage.getItem(key);
-    return d ? JSON.parse(d) : JSON.parse(JSON.stringify(fallback));
-  } catch { return JSON.parse(JSON.stringify(fallback)); }
-}
-
-function saveData(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
+/* ===== FIRESTORE REFS ===== */
+const menuRef   = () => db.doc('sar_data/menu');
+const hoursRef  = () => db.doc('sar_data/hours');
+const promosRef = () => db.doc('sar_data/promotions');
+const ordersCol = () => db.collection('sar_orders');
 
 /* ===== AUTH ===== */
 function handleLogin(e) {
@@ -88,6 +82,7 @@ function handleLogin(e) {
 }
 
 function handleLogout() {
+  if (ordersUnsubscribe) { ordersUnsubscribe(); ordersUnsubscribe = null; }
   document.getElementById('adminLayout').classList.remove('visible');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('password').value = '';
@@ -112,12 +107,43 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-/* ===== INIT ===== */
-function initAdmin() {
+/* ===== INIT — load all data from Firestore, seed defaults if first run ===== */
+async function initAdmin() {
+  try {
+    // Load menu
+    const menuSnap = await menuRef().get();
+    if (menuSnap.exists) {
+      menuData = menuSnap.data();
+    } else {
+      await menuRef().set(DEFAULT_MENU);
+      menuData = JSON.parse(JSON.stringify(DEFAULT_MENU));
+    }
+
+    // Load hours
+    const hoursSnap = await hoursRef().get();
+    if (hoursSnap.exists) {
+      hoursData = hoursSnap.data().schedule;
+    } else {
+      await hoursRef().set({ schedule: DEFAULT_HOURS });
+      hoursData = JSON.parse(JSON.stringify(DEFAULT_HOURS));
+    }
+
+    // Load promotions
+    const promosSnap = await promosRef().get();
+    if (promosSnap.exists) {
+      promosData = promosSnap.data().items;
+    } else {
+      await promosRef().set({ items: DEFAULT_PROMOS });
+      promosData = JSON.parse(JSON.stringify(DEFAULT_PROMOS));
+    }
+  } catch (err) {
+    console.warn('Firestore not configured — running in offline mode.', err);
+  }
+
   renderMenuTables();
   renderHoursAdmin();
   renderPromos();
-  renderOrders();
+  subscribeToOrders();
   updateStats();
   renderTodaySpecials();
 }
@@ -139,10 +165,7 @@ function renderTodaySpecials() {
   }
   container.innerHTML = promosData.map(p => `
     <div class="promo-card">
-      <div>
-        <h4>${p.title}</h4>
-        <p>${p.desc}</p>
-      </div>
+      <div><h4>${p.title}</h4><p>${p.desc}</p></div>
       ${p.highlight ? `<span class="category-tag">${p.highlight}</span>` : ''}
     </div>`).join('');
 }
@@ -156,26 +179,24 @@ function renderMenuTables() {
 
 function renderCategoryTable(category, tbodyId, badgeId) {
   const items = menuData[category];
-  const tbody = document.getElementById(tbodyId);
   if (badgeId) document.getElementById(badgeId).textContent = `${items.length} items`;
-  tbody.innerHTML = items.map((item, i) => `
+  document.getElementById(tbodyId).innerHTML = items.map((item, i) => `
     <tr>
-      <td><strong>${item.name}</strong>${item.desc ? `<br><small style="color:var(--text-muted)">${item.desc.substring(0,60)}...</small>` : ''}</td>
+      <td><strong>${item.name}</strong>${item.desc ? `<br><small style="color:var(--text-muted)">${item.desc.substring(0,60)}…</small>` : ''}</td>
       <td><strong>${item.price}</strong> Birr</td>
       <td><span class="avail-badge ${item.available ? 'yes' : 'no'}">${item.available ? '✓ Available' : '✗ Unavailable'}</span></td>
       <td>
-        <button class="btn-edit" onclick="editMenuItem('${category}', ${i})">Edit</button>
-        <button class="btn-danger" onclick="openDeleteModal('${category}', ${i})">Delete</button>
+        <button class="btn-edit" onclick="editMenuItem('${category}',${i})">Edit</button>
+        <button class="btn-danger" onclick="openDeleteModal('${category}',${i})">Delete</button>
       </td>
     </tr>`).join('');
 }
 
 function renderDrinksTable() {
-  const tbody = document.getElementById('drinks-table-body');
   const drinkCategories = [
     { key: 'cocktails', label: 'Cocktail' },
-    { key: 'coffee', label: 'Cold Coffee' },
-    { key: 'softdrinks', label: 'Soft Drink' },
+    { key: 'coffee',    label: 'Cold Coffee' },
+    { key: 'softdrinks',label: 'Soft Drink' },
   ];
   let rows = '';
   drinkCategories.forEach(({ key, label }) => {
@@ -186,13 +207,13 @@ function renderDrinksTable() {
           <td><span class="category-tag">${label}</span></td>
           <td><strong>${item.price}</strong> Birr</td>
           <td>
-            <button class="btn-edit" onclick="editMenuItem('${key}', ${i})">Edit</button>
-            <button class="btn-danger" onclick="openDeleteModal('${key}', ${i})">Delete</button>
+            <button class="btn-edit" onclick="editMenuItem('${key}',${i})">Edit</button>
+            <button class="btn-danger" onclick="openDeleteModal('${key}',${i})">Delete</button>
           </td>
         </tr>`;
     });
   });
-  tbody.innerHTML = rows;
+  document.getElementById('drinks-table-body').innerHTML = rows;
 }
 
 /* ===== MENU FORM ===== */
@@ -210,42 +231,41 @@ function editMenuItem(category, index) {
 }
 
 function clearMenuForm() {
-  document.getElementById('edit-index').value = '';
-  document.getElementById('edit-category').value = '';
-  document.getElementById('item-name').value = '';
-  document.getElementById('item-price').value = '';
+  ['edit-index','edit-category','item-name','item-price','item-desc'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   document.getElementById('item-category').value = 'burgers';
-  document.getElementById('item-desc').value = '';
   document.getElementById('item-available').checked = true;
   document.getElementById('menu-form-title').textContent = 'Add New Menu Item';
 }
 
-function saveMenuItem() {
-  const name = document.getElementById('item-name').value.trim();
-  const price = parseInt(document.getElementById('item-price').value);
-  const category = document.getElementById('item-category').value;
-  const desc = document.getElementById('item-desc').value.trim();
+async function saveMenuItem() {
+  const name      = document.getElementById('item-name').value.trim();
+  const price     = parseInt(document.getElementById('item-price').value);
+  const category  = document.getElementById('item-category').value;
+  const desc      = document.getElementById('item-desc').value.trim();
   const available = document.getElementById('item-available').checked;
   const editIndex = document.getElementById('edit-index').value;
-  const editCategory = document.getElementById('edit-category').value;
+  const editCat   = document.getElementById('edit-category').value;
 
-  if (!name || !price || isNaN(price)) {
-    toast('⚠️ Name and price are required.');
-    return;
-  }
+  if (!name || !price || isNaN(price)) { toast('⚠️ Name and price are required.'); return; }
 
   const item = { name, price, desc, available };
 
-  if (editIndex !== '' && editCategory) {
-    menuData[editCategory][parseInt(editIndex)] = item;
-    toast('✅ Item updated successfully!');
+  if (editIndex !== '' && editCat) {
+    menuData[editCat][parseInt(editIndex)] = item;
   } else {
-    if (!menuData[category]) menuData[category] = [];
+    menuData[category] = menuData[category] || [];
     menuData[category].push(item);
-    toast('✅ Item added to menu!');
   }
 
-  saveData('sarMenuData', menuData);
+  try {
+    await menuRef().set(menuData);
+    toast('✅ ' + (editIndex !== '' ? 'Item updated!' : 'Item added!'));
+  } catch {
+    toast('⚠️ Saved locally — Firestore not connected.');
+  }
+
   renderMenuTables();
   updateStats();
   clearMenuForm();
@@ -262,10 +282,12 @@ function closeDeleteModal() {
   document.getElementById('deleteModal').classList.remove('open');
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (!pendingDelete) return;
   menuData[pendingDelete.category].splice(pendingDelete.index, 1);
-  saveData('sarMenuData', menuData);
+  try {
+    await menuRef().set(menuData);
+  } catch { /* offline */ }
   renderMenuTables();
   updateStats();
   closeDeleteModal();
@@ -274,122 +296,154 @@ function confirmDelete() {
 
 /* ===== HOURS ===== */
 function renderHoursAdmin() {
-  const grid = document.getElementById('hours-admin-grid');
-  grid.innerHTML = hoursData.map((h, i) => `
+  document.getElementById('hours-admin-grid').innerHTML = hoursData.map((h, i) => `
     <div class="hours-admin-row">
       <span class="day-label">${h.day}</span>
       <input type="time" value="${h.open}" id="open-${i}" />
       <input type="time" value="${h.close}" id="close-${i}" />
       <label class="toggle-open">
-        <input type="checkbox" id="isopen-${i}" ${h.isOpen ? 'checked' : ''} />
-        Open
+        <input type="checkbox" id="isopen-${i}" ${h.isOpen ? 'checked' : ''} /> Open
       </label>
     </div>`).join('');
 }
 
-function saveHours() {
+async function saveHours() {
   hoursData = hoursData.map((h, i) => ({
     ...h,
-    open: document.getElementById(`open-${i}`).value,
-    close: document.getElementById(`close-${i}`).value,
+    open:   document.getElementById(`open-${i}`).value,
+    close:  document.getElementById(`close-${i}`).value,
     isOpen: document.getElementById(`isopen-${i}`).checked,
   }));
-  saveData('sarHoursData', hoursData);
-  toast('✅ Hours saved!');
+  try {
+    await hoursRef().set({ schedule: hoursData });
+    toast('✅ Hours saved!');
+  } catch {
+    toast('⚠️ Saved locally — Firestore not connected.');
+  }
 }
 
 /* ===== PROMOTIONS ===== */
 function renderPromos() {
   const container = document.getElementById('promos-list');
-  if (!promosData.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:1rem 0;">No promotions yet.</p>';
-    return;
-  }
-  container.innerHTML = promosData.map((p, i) => `
-    <div class="promo-card">
-      <div>
-        <h4>${p.title}</h4>
-        <p>${p.desc}</p>
-        ${p.highlight ? `<small style="color:var(--green-mid);font-weight:600">${p.highlight}</small>` : ''}
-      </div>
-      <div class="promo-actions">
-        <button class="btn-danger" onclick="deletePromo(${i})">Delete</button>
-      </div>
-    </div>`).join('');
+  container.innerHTML = promosData.length
+    ? promosData.map((p, i) => `
+        <div class="promo-card">
+          <div>
+            <h4>${p.title}</h4>
+            <p>${p.desc}</p>
+            ${p.highlight ? `<small style="color:var(--green-mid);font-weight:600">${p.highlight}</small>` : ''}
+          </div>
+          <div class="promo-actions">
+            <button class="btn-danger" onclick="deletePromo(${i})">Delete</button>
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:1rem 0;">No promotions yet.</p>';
   updateStats();
   renderTodaySpecials();
 }
 
-function savePromo() {
-  const title = document.getElementById('promo-title').value.trim();
-  const desc = document.getElementById('promo-desc').value.trim();
+async function savePromo() {
+  const title     = document.getElementById('promo-title').value.trim();
+  const desc      = document.getElementById('promo-desc').value.trim();
   const highlight = document.getElementById('promo-highlight').value.trim();
   if (!title) { toast('⚠️ Promotion title is required.'); return; }
+
   promosData.push({ title, desc, highlight });
-  saveData('sarPromosData', promosData);
+  try {
+    await promosRef().set({ items: promosData });
+    toast('✅ Promotion added!');
+  } catch {
+    toast('⚠️ Saved locally — Firestore not connected.');
+  }
+
+  ['promo-title','promo-desc','promo-highlight'].forEach(id => document.getElementById(id).value = '');
   renderPromos();
-  document.getElementById('promo-title').value = '';
-  document.getElementById('promo-desc').value = '';
-  document.getElementById('promo-highlight').value = '';
-  toast('✅ Promotion added!');
 }
 
-function deletePromo(i) {
+async function deletePromo(i) {
   promosData.splice(i, 1);
-  saveData('sarPromosData', promosData);
+  try {
+    await promosRef().set({ items: promosData });
+  } catch { /* offline */ }
   renderPromos();
   toast('🗑️ Promotion deleted.');
 }
 
-/* ===== ORDERS ===== */
-function logOrder() {
-  const name = document.getElementById('order-name').value.trim();
-  const item = document.getElementById('order-item').value.trim();
+/* ===== ORDERS — real-time Firestore listener ===== */
+function subscribeToOrders() {
+  if (ordersUnsubscribe) ordersUnsubscribe();
+  try {
+    ordersUnsubscribe = ordersCol()
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .onSnapshot(snap => {
+        const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderOrders(orders);
+      }, () => renderOrders([]));
+  } catch {
+    renderOrders([]);
+  }
+}
+
+async function logOrder() {
+  const name   = document.getElementById('order-name').value.trim();
+  const item   = document.getElementById('order-item').value.trim();
   const amount = document.getElementById('order-amount').value;
   const status = document.getElementById('order-status').value;
   if (!item) { toast('⚠️ Item name is required.'); return; }
-  ordersData.unshift({
+
+  const order = {
     name: name || 'Walk-in',
     item,
     amount: amount ? parseInt(amount) : null,
     status,
-    time: new Date().toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }),
-    date: new Date().toLocaleDateString('en-ET'),
-  });
-  saveData('sarOrdersData', ordersData);
-  renderOrders();
-  document.getElementById('order-name').value = '';
-  document.getElementById('order-item').value = '';
-  document.getElementById('order-amount').value = '';
-  toast('✅ Order logged!');
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    displayTime: new Date().toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }),
+    displayDate: new Date().toLocaleDateString('en-ET'),
+  };
+
+  try {
+    await ordersCol().add(order);
+    toast('✅ Order logged!');
+  } catch {
+    toast('⚠️ Could not save — Firestore not connected.');
+    return;
+  }
+
+  ['order-name','order-item','order-amount'].forEach(id => document.getElementById(id).value = '');
 }
 
-function renderOrders() {
+function renderOrders(orders) {
   const container = document.getElementById('orders-list');
-  if (!ordersData.length) {
+  if (!orders.length) {
     container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:1rem 0;">No orders logged yet.</p>';
     return;
   }
-  container.innerHTML = ordersData.map((o, i) => `
+  container.innerHTML = orders.map((o, i) => `
     <div class="order-log-item">
-      <div class="order-num">#${ordersData.length - i}</div>
+      <div class="order-num">#${orders.length - i}</div>
       <div class="order-details">
         <div class="order-item-name">${o.item}${o.amount ? ` — ${o.amount} Birr` : ''}</div>
-        <div class="order-time">${o.name} · ${o.date} ${o.time}</div>
+        <div class="order-time">${o.name} · ${o.displayDate || ''} ${o.displayTime || ''}</div>
       </div>
       <span class="order-status ${o.status}">${o.status === 'done' ? '✓ Done' : '⏳ Pending'}</span>
     </div>`).join('');
 }
 
-function clearOrders() {
-  if (!confirm('Clear all order logs?')) return;
-  ordersData = [];
-  saveData('sarOrdersData', ordersData);
-  renderOrders();
-  toast('🗑️ Orders cleared.');
+async function clearOrders() {
+  if (!confirm('Clear all order logs? This cannot be undone.')) return;
+  try {
+    const snap = await ordersCol().get();
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    toast('🗑️ Orders cleared.');
+  } catch {
+    toast('⚠️ Could not clear — Firestore not connected.');
+  }
 }
 
-/* ===== CLOSE MODAL ON OVERLAY CLICK ===== */
+/* ===== MODAL CLOSE ON OVERLAY CLICK ===== */
 document.getElementById('deleteModal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
 });
