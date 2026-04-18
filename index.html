@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAR Burger — Smashed. Stacked. Sauced.</title>
+  <meta name="description" content="SAR Burger — fresh smash burgers, Philly cheesesteaks, signature cocktails and more. Order now via WhatsApp." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>" />
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <a href="#" class="nav-logo"><span>ሣር</span> SAR</a>
+  <ul class="nav-links">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#location">Find Us</a></li>
+    <li><a href="https://wa.me/251000000000?text=Hi%20SAR%20Burger!%20I'd%20like%20to%20place%20an%20order%20%F0%9F%8D%94" target="_blank" class="nav-order-btn">Order Now</a></li>
+  </ul>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="#menu" onclick="toggleMenu()">Menu</a>
+  <a href="#about" onclick="toggleMenu()">About</a>
+  <a href="#gallery" onclick="toggleMenu()">Gallery</a>
+  <a href="#location" onclick="toggleMenu()">Find Us</a>
+  <a href="https://wa.me/251000000000?text=Hi%20SAR%20Burger!%20I'd%20like%20to%20place%20an%20order%20%F0%9F%8D%94" target="_blank" onclick="toggleMenu()">Order via WhatsApp</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="home">
+  <div class="hero-content">
+    <div class="hero-eyebrow">🍔 Now Open in Addis</div>
+    <h1>Welcome to<br><span class="brand">SAR Burger</span></h1>
+    <p class="hero-tagline">"Smashed. Stacked. Sauced."</p>
+    <div class="hero-ctas">
+      <a href="#menu" class="btn-primary">View Menu ↓</a>
+      <a href="https://wa.me/251000000000?text=Hi%20SAR%20Burger!%20I'd%20like%20to%20place%20an%20order%20%F0%9F%8D%94" target="_blank" class="btn-outline">📱 Order on WhatsApp</a>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- ===== WHY SAR ===== -->
+<section class="why-sar" id="why">
+  <p class="section-label">Why We're Different</p>
+  <h2 class="section-title">Made with passion. Served with pride.</h2>
+  <p class="section-subtitle">Every burger at SAR is crafted from fresh ingredients with our secret in-house recipes.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">🥩</span>
+      <h3>Fresh Smash Patties</h3>
+      <p>Beef smashed fresh to order on a screaming-hot griddle for maximum crust and flavour.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🟢</span>
+      <h3>SAR's Secret Sauce</h3>
+      <p>Our signature sauce — the one ingredient you can't replicate at home.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🍞</span>
+      <h3>Toasted Potato Buns</h3>
+      <p>Soft, pillowy potato buns toasted golden to hold every layer together perfectly.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🧃</span>
+      <h3>Signature Cocktails</h3>
+      <p>Alcohol-free craft cocktails made fresh — the perfect complement to every meal.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MENU ===== -->
+<section class="menu-section" id="menu">
+  <p class="section-label">Our Menu</p>
+  <h2 class="section-title">Find Your Favourite</h2>
+  <p class="section-subtitle">All burgers served on toasted potato buns with SAR sauce. Prices in Ethiopian Birr.</p>
+
+  <div class="menu-tabs">
+    <button class="tab-btn active" onclick="switchTab('burgers', this)">🍔 Burgers</button>
+    <button class="tab-btn" onclick="switchTab('sandwiches', this)">🥪 Sandwiches</button>
+    <button class="tab-btn" onclick="switchTab('drinks', this)">🥤 Drinks</button>
+  </div>
+
+  <!-- BURGERS -->
+  <div class="menu-panel active" id="tab-burgers">
+    <div class="menu-grid" id="burgers-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- SANDWICHES -->
+  <div class="menu-panel" id="tab-sandwiches">
+    <p class="menu-category-label">All sandwiches served on a fresh, soft hoagie roll with a side of crispy fries.</p>
+    <div class="menu-grid" id="sandwiches-grid"></div>
+  </div>
+
+  <!-- DRINKS -->
+  <div class="menu-panel" id="tab-drinks">
+    <div id="drinks-container"></div>
+  </div>
+</section>
+
+<!-- ===== OFFERS BANNER ===== -->
+<div class="offers-banner">
+  <h2>🔥 Combo Deal of the Day</h2>
+  <p>Any Burger + Any Drink starting from just <strong>745 Birr</strong> — save big, eat bigger.</p>
+  <a href="https://wa.me/251000000000?text=Hi%20SAR!%20I%20want%20the%20combo%20deal%20%F0%9F%94%A5" target="_blank" class="btn-primary">Claim via WhatsApp</a>
+</div>
+
+<!-- ===== ABOUT ===== -->
+<section class="about" id="about">
+  <div class="about-grid">
+    <div class="about-text">
+      <p class="section-label">Our Story</p>
+      <h2 class="section-title">Born in Addis, Built on Beef</h2>
+      <p>SAR Burger was born from a simple love of great food — the kind that makes you close your eyes and savour every bite. We set out to bring real smash burger culture to Addis Ababa, using quality beef, house-made sauces, and buns baked to perfection.</p>
+      <p>Our name, <strong>ሣር (SAR)</strong>, reflects our roots. Every item on our menu is crafted with intention — from the Naked Smash to the Philly Cheese Steak, each dish tells a story of quality, community, and flavour.</p>
+      <p>Whether you're grabbing a quick lunch or settling in for a feast with friends, SAR is your spot.</p>
+      <div class="about-stats">
+        <div class="stat">
+          <span class="stat-number">9+</span>
+          <span class="stat-label">Menu Items</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">18+</span>
+          <span class="stat-label">Drinks</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">4.8★</span>
+          <span class="stat-label">Avg Rating</span>
+        </div>
+      </div>
+    </div>
+    <div class="about-image-box">🍔</div>
+  </div>
+</section>
+
+<!-- ===== GALLERY ===== -->
+<section class="gallery" id="gallery">
+  <p class="section-label">Food Gallery</p>
+  <h2 class="section-title">Fresh from the Grill</h2>
+  <p class="section-subtitle">See what's cooking at SAR. Follow us on TikTok for daily drops.</p>
+  <div class="gallery-grid">
+    <div class="gallery-item" data-label="The Smash Collection" style="background:linear-gradient(135deg,#1B4332,#2D6A4F)">🍔</div>
+    <div class="gallery-item" data-label="BBQ Smash Burger" style="background:linear-gradient(135deg,#2D6A4F,#40916C)">🥩</div>
+    <div class="gallery-item" data-label="Philly Cheese Steak" style="background:linear-gradient(135deg,#40916C,#52B788)">🥪</div>
+    <div class="gallery-item" data-label="SAR Special Cocktail" style="background:linear-gradient(135deg,#52B788,#74C69D)">🍹</div>
+    <div class="gallery-item" data-label="Butter Smash Burger" style="background:linear-gradient(135deg,#1B4332,#52B788)">🧈</div>
+    <div class="gallery-item" data-label="Crispy Fries & Sauces" style="background:linear-gradient(135deg,#2D6A4F,#1B4332)">🍟</div>
+  </div>
+  <div class="gallery-tiktok">
+    <a href="https://www.tiktok.com/@sar_burger_restaurant" target="_blank" class="tiktok-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.02a8.16 8.16 0 004.77 1.52V7.09a4.85 4.85 0 01-1-.4z"/></svg>
+      Follow @sar_burger_restaurant on TikTok
+    </a>
+  </div>
+</section>
+
+<!-- ===== REVIEWS ===== -->
+<section class="reviews" id="reviews">
+  <p class="section-label">Customer Love</p>
+  <h2 class="section-title">What People Are Saying</h2>
+  <div class="rating-overall">
+    <div class="rating-big">4.8</div>
+    <div class="stars">★★★★★</div>
+    <div class="rating-count">Based on customer reviews</div>
+  </div>
+  <div class="reviews-grid">
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"The Butter Smash Burger is absolutely incredible — crispy on the outside, juicy inside. SAR sauce is on another level. Best burger in Addis, no debate."</p>
+      <div class="review-author">
+        <div class="review-avatar">A</div>
+        <div>
+          <div class="review-name">Abel T.</div>
+          <div class="review-date">Regular Customer</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"Philly Cheese Steak was unreal — the beef was tender, the cheese melted perfectly. The Lemonade Breeze cocktail paired so well. Will definitely be back!"</p>
+      <div class="review-author">
+        <div class="review-avatar">S</div>
+        <div>
+          <div class="review-name">Sara M.</div>
+          <div class="review-date">Loyal Customer</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"Tried the Onion Smash Burger — the way the onions cook into the patty is genius. Fresh buns, generous sauce. SAR never disappoints, every single time."</p>
+      <div class="review-author">
+        <div class="review-avatar">D</div>
+        <div>
+          <div class="review-name">Dawit K.</div>
+          <div class="review-date">Verified Customer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LOCATION & HOURS ===== -->
+<section class="location" id="location">
+  <p class="section-label">Find Us</p>
+  <h2 class="section-title">Come Visit SAR Burger</h2>
+  <p class="section-subtitle">Walk in or order ahead via WhatsApp — we're ready for you.</p>
+  <div class="location-grid">
+    <div>
+      <div class="open-badge">Open Now</div>
+      <div class="hours-table">
+        <div class="hours-row"><span class="hours-day">Monday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row"><span class="hours-day">Tuesday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row"><span class="hours-day">Wednesday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row today"><span class="hours-day">Thursday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row"><span class="hours-day">Friday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row"><span class="hours-day">Saturday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+        <div class="hours-row"><span class="hours-day">Sunday</span><span class="hours-time">10:00 AM – 11:00 PM</span></div>
+      </div>
+      <div class="contact-info">
+        <div class="contact-item"><span>📍</span><span>Addis Ababa, Ethiopia</span></div>
+        <div class="contact-item"><span>📞</span><span>+251 000 000 000</span></div>
+        <div class="contact-item"><span>🕐</span><span>Open 7 days a week, 10AM – 11PM</span></div>
+        <div class="contact-item"><span>📱</span><span><a href="https://www.tiktok.com/@sar_burger_restaurant" target="_blank" style="color:var(--green-mid);font-weight:600">@sar_burger_restaurant</a></span></div>
+      </div>
+    </div>
+    <div class="map-container">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126765.00!2d38.7578!3d9.0084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sSAR%20Burger%2C%20Addis%20Ababa!5e0!3m2!1sen!2set!4v1"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="SAR Burger Location">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHATSAPP FLOAT ===== -->
+<a href="https://wa.me/251000000000?text=Hi%20SAR%20Burger!%20I'd%20like%20to%20place%20an%20order%20%F0%9F%8D%94" target="_blank" class="whatsapp-float" aria-label="Order on WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="nav-logo"><span>ሣር</span> SAR</div>
+      <p>Addis Ababa's home of fresh smash burgers, Philly steaks, and craft cocktails. Made with love, served with pride.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#about">Our Story</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#location">Find Us</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="tel:+251000000000">+251 000 000 000</a></li>
+        <li><a href="https://wa.me/251000000000" target="_blank">WhatsApp Order</a></li>
+        <li><a href="https://www.tiktok.com/@sar_burger_restaurant" target="_blank">TikTok</a></li>
+        <li><a href="admin.html">Staff Login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 SAR Burger. All rights reserved.</span>
+    <div class="social-links">
+      <a href="https://www.tiktok.com/@sar_burger_restaurant" target="_blank">TikTok</a>
+      <a href="https://wa.me/251000000000" target="_blank">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

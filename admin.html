@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAR Burger — Admin Dashboard</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>" />
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo"><span>ሣር</span> SAR</div>
+    <p class="login-subtitle">Staff Dashboard — Authorised Access Only</p>
+    <div class="login-error" id="loginError">Incorrect password. Please try again.</div>
+    <form class="login-form" onsubmit="handleLogin(event)">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter staff password" autocomplete="current-password" />
+      <button type="submit" class="login-btn">Sign In →</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== ADMIN LAYOUT ===== -->
+<div class="admin-layout" id="adminLayout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>ሣር</span> SAR</div>
+    <div class="sidebar-subtitle">Admin Panel</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPanel('dashboard', this)">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('menu', this)">
+        <span class="icon">🍔</span> Menu Manager
+      </div>
+      <div class="nav-item" onclick="showPanel('promotions', this)">
+        <span class="icon">🔥</span> Promotions
+      </div>
+      <div class="nav-item" onclick="showPanel('hours', this)">
+        <span class="icon">🕐</span> Hours
+      </div>
+      <div class="nav-item" onclick="showPanel('orders', this)">
+        <span class="icon">📋</span> Orders Log
+      </div>
+      <div class="nav-item" onclick="window.open('index.html','_blank')">
+        <span class="icon">🌐</span> View Website
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+      <span class="topbar-badge" id="topbarBadge">SAR Burger Admin</span>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- DASHBOARD PANEL -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-burgers">6</div>
+            <div class="stat-label">Burger Items</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-sandwiches">3</div>
+            <div class="stat-label">Sandwiches</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-drinks">17</div>
+            <div class="stat-label">Drink Options</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-promos">1</div>
+            <div class="stat-label">Active Promos</div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Quick Actions</h2>
+          </div>
+          <div class="admin-card-body" style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <button class="btn-green" onclick="showPanel('menu', document.querySelector('[onclick*=menu]'))">+ Add Menu Item</button>
+            <button class="btn-green" onclick="showPanel('promotions', document.querySelector('[onclick*=promotions]'))">+ New Promotion</button>
+            <button class="btn-outline-green" onclick="window.open('index.html','_blank')">Preview Website ↗</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Today's Specials</h2>
+          </div>
+          <div class="admin-card-body">
+            <div id="today-specials-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU MANAGER PANEL -->
+      <div class="panel" id="panel-menu">
+
+        <!-- Add / Edit Form -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2 id="menu-form-title">Add New Menu Item</h2>
+          </div>
+          <div class="admin-card-body">
+            <input type="hidden" id="edit-index" value="" />
+            <input type="hidden" id="edit-category" value="" />
+            <div class="form-row">
+              <div class="form-group">
+                <label>Item Name *</label>
+                <input type="text" id="item-name" placeholder="e.g. Spicy Smash Burger" />
+              </div>
+              <div class="form-group">
+                <label>Price (Birr) *</label>
+                <input type="number" id="item-price" placeholder="e.g. 750" min="0" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="item-category">
+                  <option value="burgers">Burgers</option>
+                  <option value="sandwiches">Sandwiches</option>
+                  <option value="cocktails">Cocktails</option>
+                  <option value="coffee">Cold Coffee</option>
+                  <option value="softdrinks">Soft Drinks</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Available</label>
+                <div class="form-check" style="margin-top:0.7rem">
+                  <input type="checkbox" id="item-available" checked />
+                  <label for="item-available">Item is currently available</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="item-desc" placeholder="Describe the item..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn-green" onclick="saveMenuItem()">Save Item</button>
+              <button class="btn-outline-green" onclick="clearMenuForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Burgers Table -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>🍔 Burgers</h2>
+            <span id="burger-count-badge" class="category-tag">6 items</span>
+          </div>
+          <div class="admin-card-body" style="padding:0;overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Name</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="burgers-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sandwiches Table -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>🥪 Sandwiches</h2>
+            <span id="sandwich-count-badge" class="category-tag">3 items</span>
+          </div>
+          <div class="admin-card-body" style="padding:0;overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Name</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="sandwiches-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Drinks Table -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>🥤 Drinks</h2>
+          </div>
+          <div class="admin-card-body" style="padding:0;overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Actions</th></tr></thead>
+              <tbody id="drinks-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMOTIONS PANEL -->
+      <div class="panel" id="panel-promotions">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Add Promotion</h2>
+          </div>
+          <div class="admin-card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Promotion Title *</label>
+                <input type="text" id="promo-title" placeholder="e.g. Weekend Deal" />
+              </div>
+              <div class="form-group">
+                <label>Highlight Text</label>
+                <input type="text" id="promo-highlight" placeholder="e.g. Save 100 Birr!" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="promo-desc" placeholder="Describe the promotion..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn-green" onclick="savePromo()">Add Promotion</button>
+            </div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header"><h2>Active Promotions</h2></div>
+          <div class="admin-card-body" id="promos-list"></div>
+        </div>
+      </div>
+
+      <!-- HOURS PANEL -->
+      <div class="panel" id="panel-hours">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Opening Hours</h2>
+            <button class="btn-green" onclick="saveHours()">Save Hours</button>
+          </div>
+          <div class="admin-card-body">
+            <div class="hours-admin-grid" id="hours-admin-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS LOG PANEL -->
+      <div class="panel" id="panel-orders">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Log WhatsApp Order</h2>
+          </div>
+          <div class="admin-card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" id="order-name" placeholder="Customer name" />
+              </div>
+              <div class="form-group">
+                <label>Item Ordered</label>
+                <input type="text" id="order-item" placeholder="e.g. Butter Smash Burger" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Amount (Birr)</label>
+                <input type="number" id="order-amount" placeholder="e.g. 790" />
+              </div>
+              <div class="form-group">
+                <label>Status</label>
+                <select id="order-status">
+                  <option value="pending-s">Pending</option>
+                  <option value="done">Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-green" onclick="logOrder()">Log Order</button>
+            </div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2>Recent Orders</h2>
+            <button class="btn-danger" onclick="clearOrders()">Clear All</button>
+          </div>
+          <div class="admin-card-body" id="orders-list">
+            <p style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:1rem 0;">No orders logged yet.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end admin-content -->
+  </main>
+</div><!-- end admin-layout -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Item?</h3>
+    <p style="color:var(--text-muted);margin-bottom:1rem;font-size:0.9rem;">This will remove the item from the menu. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-outline-green" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" style="padding:0.6rem 1.2rem;" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
