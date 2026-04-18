@@ -26,12 +26,13 @@
  */
 
 const firebaseConfig = {
-  apiKey:            "PASTE_YOUR_API_KEY_HERE",
-  authDomain:        "PASTE_YOUR_AUTH_DOMAIN_HERE",
-  projectId:         "PASTE_YOUR_PROJECT_ID_HERE",
-  storageBucket:     "PASTE_YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID_HERE",
-  appId:             "PASTE_YOUR_APP_ID_HERE",
+  apiKey:            "AIzaSyBuV6crCqS4wPsuwZiRC_WOXk9J2RaHogU",
+  authDomain:        "sar-burger.firebaseapp.com",
+  projectId:         "sar-burger",
+  storageBucket:     "sar-burger.firebasestorage.app",
+  messagingSenderId: "819394413738",
+  appId:             "1:819394413738:web:5c64993c09104186063cd3",
+  measurementId:     "G-MW2YW4LFK9",
 };
 
 firebase.initializeApp(firebaseConfig);
